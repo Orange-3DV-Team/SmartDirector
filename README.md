@@ -1,21 +1,15 @@
-<div align="center">
+<p align="center">
+  <img src="https://anim-res.youku.com/zzd/GSB_eval/web/logo0.png" width="72" style="border-radius: 16px;" />
+  &nbsp;&nbsp;
+  <img src="https://readme-typing-svg.demolab.com?font=Bebas+Neue&weight=700&size=52&pause=100000&color=F5C542&center=true&vCenter=true&width=500&height=60&lines=SMARTDIRECTOR" alt="SmartDirector" />
+</p>
 
-<img src="https://anim-res.youku.com/zzd/GSB_eval/web/logo0.png" width="80" style="border-radius: 16px;" />
+<h3 align="center">Keyframe-Conditioned Cinematic Video Generation with Narrative Pacing Control</h3>
 
-# SmartDirector
-
-### Keyframe-Conditioned Cinematic Video Generation with Narrative Pacing Control
-
+<p align="center">
 <a href="https://orange-3dv-team.github.io/SmartDirector/"><img src="https://img.shields.io/static/v1?label=Project%20Page&message=Web&color=green"></a> &ensp;
 <a href="https://github.com/Orange-3DV-Team/SmartDirector"><img src="https://img.shields.io/static/v1?label=Code&message=Github&color=blue"></a> &ensp;
 <a href="https://orange-3dv-team.github.io/SmartDirector/"><img src="https://img.shields.io/static/v1?label=Paper&message=arXiv&color=red"></a> &ensp;
-
-</div>
-
-## 🎬 Demo
-
-<div align="center">
+</p>
 
 https://github.com/Orange-3DV-Team/SmartDirector/raw/main/teaser.mp4
-
-</div>
