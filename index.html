@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SmartDirector: Keyframe-Conditioned Cinematic Video Generation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<style>
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #0E0E10;
+  color: #E0E0E0;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ===== Utility ===== */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.container-wide { max-width: 80vw; margin: 0 auto; padding: 0 32px; }
+.section { padding: 72px 0; }
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.2rem;
+  letter-spacing: 3px;
+  color: #F5C542;
+  text-align: center;
+  margin-bottom: 8px;
+}
+.section-desc {
+  text-align: center;
+  color: #8A8F98;
+  font-size: 0.92rem;
+  max-width: 720px;
+  margin: 0 auto 40px;
+  line-height: 1.6;
+}
+.divider {
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #F5C542, transparent);
+  margin: 12px auto 20px;
+}
+
+/* ===== Hero ===== */
+.hero {
+  text-align: center;
+  padding: 100px 24px 56px;
+  background: radial-gradient(ellipse at 50% 0%, #1A1A2E 0%, #0E0E10 70%);
+}
+.hero-title-row {
+  display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 12px;
+}
+.hero-logo {
+  width: 80px; height: 80px; border-radius: 16px; flex-shrink: 0;
+  overflow: hidden; box-shadow: 0 4px 24px rgba(245,197,66,0.3);
+}
+.hero-logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 16px; }
+.hero-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 4.5rem;
+  letter-spacing: 6px; color: #FFF; line-height: 1.1;
+  text-shadow: 0 0 40px rgba(245,197,66,0.15);
+}
+.hero-title span {
+  background: linear-gradient(90deg, #F5C542, #E6922E);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.hero-tagline { font-size: 1.25rem; color: #9BA0A8; font-weight: 300; letter-spacing: 1px; margin-bottom: 28px; }
+.authors { margin-bottom: 24px; font-size: 1.05rem; color: #C8CCD4; }
+.authors a { color: #C8CCD4; text-decoration: none; border-bottom: 1px dashed #555; transition: color 0.2s; }
+.authors a:hover { color: #F5C542; }
+.affiliations { font-size: 0.85rem; color: #6B7280; margin-top: 6px; }
+.affiliations sup { color: #F5C542; font-weight: 600; }
+.hero-links { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-top: 24px; }
+.hero-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 24px; border-radius: 8px; font-size: 0.95rem; font-weight: 500;
+  text-decoration: none; transition: all 0.25s;
+  border: 1.5px solid #333; color: #E0E0E0; background: rgba(255,255,255,0.04);
+}
+.hero-btn:hover {
+  border-color: #F5C542; color: #F5C542;
+  background: rgba(245,197,66,0.08); transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(245,197,66,0.15);
+}
+.hero-btn i { font-size: 1.1rem; }
+
+/* ===== Teaser ===== */
+.teaser { padding: 32px 0 72px; text-align: center; }
+.teaser-label {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1rem;
+  letter-spacing: 4px; color: #F5C542; margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.teaser-label::before, .teaser-label::after {
+  content: ''; width: 40px; height: 1px; background: #F5C542; opacity: 0.4;
+}
+.teaser-video-wrap {
+  position: relative; max-width: 960px; margin: 0 auto; border-radius: 12px;
+  overflow: hidden; box-shadow: 0 8px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(245,197,66,0.1);
+}
+.teaser-video-wrap video { width: 100%; display: block; background: #000; }
+
+/* ===== Abstract ===== */
+.abstract { background: #111114; }
+.abstract-text {
+  max-width: 860px; margin: 0 auto; font-size: 1.05rem;
+  line-height: 1.85; color: #B8BCC6; text-align: justify;
+}
+
+/* ===== Video grids ===== */
+.vid-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.vid-grid-2x3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+/* ===== Multi-Keyframe Card ===== */
+.mk-card {
+  position: relative; background: #16161A; border-radius: 10px;
+  overflow: hidden; border: 1px solid #1E1E22;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.mk-card:hover { border-color: rgba(245,197,66,0.3); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+.mk-card video { width: 100%; display: block; background: #000; aspect-ratio: 16/9; object-fit: contain; }
+.mk-slider-wrap {
+  position: relative; overflow: hidden; background: #111114; height: 72px;
+}
+.mk-slider {
+  display: flex; gap: 6px; padding: 8px 10px;
+  position: absolute; top: 0; left: 0; height: 100%;
+  align-items: center;
+  transition: transform 0.3s ease-out;
+  will-change: transform;
+}
+.mk-slider img {
+  height: 56px; border-radius: 4px; border: 1.5px solid #2A2A2E;
+  cursor: pointer; transition: border-color 0.2s, transform 0.2s; flex-shrink: 0;
+}
+.mk-slider img:hover { border-color: #F5C542; transform: scale(1.08); }
+.mk-slider img.active-kf { border-color: #F5C542; box-shadow: 0 0 8px rgba(245,197,66,0.4); }
+.mk-card-tooltip {
+  padding: 8px 14px; font-size: 0.75rem; color: #7A7F88; line-height: 1.5;
+  text-align: center; min-height: 32px;
+  opacity: 0; transition: opacity 0.3s;
+}
+.mk-card:hover .mk-card-tooltip { opacity: 1; }
+
+/* ===== Single-Frame Card ===== */
+.sf-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.sf-card {
+  position: relative; background: #16161A; border-radius: 10px;
+  overflow: hidden; border: 1px solid #1E1E22;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.sf-card:hover { border-color: rgba(245,197,66,0.3); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+.sf-card video { width: 100%; display: block; background: #000; aspect-ratio: 16/9; object-fit: contain; }
+.sf-card-pos-row {
+  position: relative; height: 60px; background: #111114; padding: 4px 10px;
+}
+.sf-card-pos-row img {
+  position: absolute; top: 4px; height: 52px; border-radius: 4px;
+  border: 1.5px solid #2A2A2E; cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.sf-card-pos-row img:hover { border-color: #F5C542; transform: scale(1.08); }
+.sf-card-pos-row img.active-kf { border-color: #F5C542; box-shadow: 0 0 10px rgba(245,197,66,0.5); }
+.sf-card-tooltip {
+  padding: 8px 14px; font-size: 0.75rem; color: #7A7F88; line-height: 1.5;
+  text-align: center; min-height: 32px;
+  opacity: 0; transition: opacity 0.3s;
+}
+.sf-card:hover .sf-card-tooltip { opacity: 1; }
+
+/* ===== Video card ===== */
+.vcard {
+  position: relative; background: #16161A; border-radius: 10px;
+  overflow: hidden; border: 1px solid #1E1E22;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.vcard:hover { border-color: rgba(245,197,66,0.3); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+.vcard video { width: 100%; display: block; background: #000; aspect-ratio: 16/9; object-fit: contain; }
+.vcard-label { padding: 8px 14px; font-size: 0.82rem; font-weight: 500; color: #9BA0A8; text-align: center; }
+
+/* ===== Lightbox ===== */
+.lightbox-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 9999;
+  display: none; align-items: center; justify-content: center; cursor: zoom-out;
+}
+.lightbox-overlay.active { display: flex; }
+.lightbox-overlay img { max-width: 90vw; max-height: 90vh; border-radius: 8px; box-shadow: 0 8px 48px rgba(0,0,0,0.8); }
+
+/* ===== Pacing ===== */
+.pacing-shared-keyframes { display: flex; justify-content: center; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+.pacing-shared-keyframes img { height: 72px; border-radius: 6px; border: 1.5px solid #2A2A2E; cursor: pointer; }
+.pacing-shared-keyframes img:hover { border-color: #F5C542; }
+.pacing-shared-keyframes-label { width: 100%; text-align: center; font-size: 0.78rem; color: #6B7280; margin-top: 6px; }
+.pacing-sync-bar { display: flex; justify-content: center; align-items: center; gap: 16px; margin-bottom: 24px; }
+.pacing-sync-btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 10px 28px; border-radius: 8px;
+  font-size: 0.9rem; font-weight: 600; cursor: pointer;
+  border: 1.5px solid #F5C542; color: #F5C542; background: rgba(245,197,66,0.08); transition: all 0.25s;
+}
+.pacing-sync-btn:hover { background: rgba(245,197,66,0.18); box-shadow: 0 2px 12px rgba(245,197,66,0.2); }
+.pacing-sync-btn i { font-size: 1rem; }
+.pacing-sync-progress { flex: 1; max-width: 500px; height: 6px; background: #2A2A2E; border-radius: 3px; overflow: hidden; cursor: pointer; }
+.pacing-sync-progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #F5C542, #E6922E); border-radius: 3px; transition: width 0.1s linear; }
+.pacing-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.pacing-col { background: #16161A; border-radius: 10px; overflow: hidden; border: 1px solid #1E1E22; }
+.pacing-col-header { padding: 10px 16px; text-align: center; }
+.pacing-badge { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; }
+.pacing-badge.suspense { background: rgba(230,57,70,0.15); color: #E63946; border: 1px solid rgba(230,57,70,0.3); }
+.pacing-badge.documentary { background: rgba(69,160,73,0.15); color: #45A049; border: 1px solid rgba(69,160,73,0.3); }
+.pacing-badge.action { background: rgba(66,133,244,0.15); color: #4285F4; border: 1px solid rgba(66,133,244,0.3); }
+.pacing-prompt-text { padding: 6px 16px 10px; font-size: 0.78rem; color: #7A7F88; line-height: 1.5; font-style: italic; text-align: center; }
+.pacing-col video { width: 100%; display: block; background: #000; aspect-ratio: 16/9; object-fit: contain; }
+.pacing-col-keyframes {
+  display: flex; justify-content: center; gap: 8px; padding: 8px 10px;
+  background: #111114;
+}
+.pacing-col-kf-item { text-align: center; }
+.pacing-col-kf-item img {
+  height: 48px; border-radius: 4px; border: 1.5px solid #2A2A2E; cursor: pointer;
+  transition: border-color 0.2s;
+}
+.pacing-col-kf-item img:hover { border-color: #F5C542; }
+.pacing-col-kf-item .kf-time {
+  display: block; font-size: 0.65rem; color: #6B7280; margin-top: 2px;
+  font-family: monospace;
+}
+
+/* ===== SR Comparison Slider ===== */
+.sr-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+.sr-card {
+  background: #16161A; border-radius: 10px; overflow: hidden;
+  border: 1px solid #1E1E22; transition: border-color 0.3s, box-shadow 0.3s;
+}
+.sr-card:hover { border-color: rgba(245,197,66,0.3); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+.sr-stage {
+  position: relative; width: 100%; aspect-ratio: 16/9;
+  background: #000; overflow: hidden; cursor: ew-resize;
+  display: flex; justify-content: center; align-items: center; margin: 0 auto;
+}
+.sr-viewport {
+  width: 100%; height: 100%; position: relative;
+  transform-origin: 0 0;
+}
+.sr-viewport video {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  object-fit: contain; pointer-events: none;
+}
+.sr-left-container {
+  position: absolute; top: 0; left: 0; width: 50%; height: 100%;
+  overflow: hidden; z-index: 2;
+  border-right: 2px solid #F5C542;
+}
+.sr-label {
+  position: absolute; bottom: 8px; padding: 3px 10px; border-radius: 4px;
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.5px; z-index: 5;
+  background: rgba(0,0,0,0.65); color: #E0E0E0;
+}
+.sr-label-left { left: 8px; }
+.sr-label-right { right: 8px; }
+.sr-controls {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  background: #111114; flex-wrap: wrap;
+}
+.sr-controls select {
+  padding: 4px 8px; border-radius: 4px; border: 1px solid #2A2A2E;
+  background: #1A1A1E; color: #9BA0A8; font-size: 0.78rem;
+}
+.sr-controls .sr-play-btn {
+  background: rgba(245,197,66,0.12); border: 1px solid rgba(245,197,66,0.3);
+  color: #F5C542; border-radius: 4px; padding: 4px 12px; font-size: 0.78rem;
+  cursor: pointer; transition: all 0.2s;
+}
+.sr-controls .sr-play-btn:hover { background: rgba(245,197,66,0.2); }
+.sr-controls .sr-seek { flex: 1; min-width: 80px; accent-color: #F5C542; height: 4px; }
+.sr-info { font-size: 0.7rem; color: #6B7280; font-family: monospace; white-space: nowrap; }
+.sr-zoom-badge {
+  background: rgba(245,197,66,0.12); color: #F5C542;
+  padding: 2px 8px; border-radius: 4px; font-size: 0.68rem; font-weight: 600;
+}
+.sr-hint {
+  text-align: center; font-size: 0.7rem; color: #555; padding: 4px 0;
+  background: #111114;
+}
+
+/* ===== Ethical / BibTeX / Footer ===== */
+.ethical { background: #111114; }
+.ethical-text { max-width: 820px; margin: 0 auto; font-size: 0.92rem; line-height: 1.75; color: #8A8F98; text-align: center; }
+.ethical-text a { color: #F5C542; text-decoration: none; }
+.ethical-text a:hover { text-decoration: underline; }
+.bibtex-block { max-width: 760px; margin: 0 auto; position: relative; }
+.bibtex-code { background: #1A1A1E; border: 1px solid #2A2A2E; border-radius: 10px; padding: 24px 28px; font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.7; color: #9BA0A8; overflow-x: auto; white-space: pre; }
+.bibtex-copy { position: absolute; top: 12px; right: 12px; background: rgba(245,197,66,0.12); border: 1px solid rgba(245,197,66,0.3); color: #F5C542; border-radius: 6px; padding: 6px 14px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+.bibtex-copy:hover { background: rgba(245,197,66,0.2); }
+.footer { text-align: center; padding: 40px 24px; border-top: 1px solid #1E1E22; color: #555; font-size: 0.82rem; }
+.footer a { color: #8A8F98; text-decoration: none; }
+.footer a:hover { color: #F5C542; }
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  .vid-grid-3, .vid-grid-2x3, .sf-grid, .pacing-row, .sr-grid { grid-template-columns: 1fr; }
+  .hero-title { font-size: 2.8rem; letter-spacing: 3px; }
+  .hero-tagline { font-size: 1rem; }
+  .hero-title-row { flex-direction: column; gap: 12px; }
+  .hero-logo { width: 56px; height: 56px; }
+  .section { padding: 48px 0; }
+  .section-title { font-size: 1.6rem; }
+  .container-wide { padding: 0 16px; }
+}
+@media (min-width: 901px) and (max-width: 1200px) {
+  .vid-grid-2x3, .sf-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-title-row">
+      <div class="hero-logo">
+        <img src="https://anim-res.youku.com/zzd/GSB_eval/web/logo0.png" alt="SmartDirector Logo" />
+      </div>
+      <h1 class="hero-title"><span>SmartDirector</span></h1>
+    </div>
+    <p class="hero-tagline">Keyframe-Conditioned Cinematic Video Generation with Narrative Pacing Control</p>
+    <div class="authors">
+      <a href="#">Zhida Zhang</a><sup>1</sup>,
+      <a href="#">Jie Ma</a><sup>2</sup>,
+      <a href="#">Zhan Peng</a><sup>3</sup>,
+      <a href="#">Haoxue Wu</a><sup>2</sup>,
+      <a href="#">Yang Han</a><sup>2</sup>,
+      <a href="#">Jun Liang</a><sup>2</sup>,
+      <a href="#">Jie Cao</a><sup>1</sup>,
+      <a href="#">Jing Li</a><sup>2</sup>
+      <div class="affiliations">
+        <sup>1</sup> New Laboratory of Pattern Recognition, Institute of Automation, Chinese Academy of Sciences &nbsp;&nbsp;
+        <sup>2</sup> Youku Moku-Lab &nbsp;&nbsp;
+        <sup>3</sup> Huazhong University of Science and Technology
+      </div>
+    </div>
+    <div class="hero-links">
+      <a class="hero-btn" href="#" target="_blank"><i class="fas fa-file-pdf"></i> Paper</a>
+      <a class="hero-btn" href="#" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+      <a class="hero-btn" href="#" target="_blank"><i class="fas fa-cube"></i> HF Model</a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== TEASER ==================== -->
+<section class="teaser">
+  <div class="container">
+    <div class="teaser-label">▶ HIGHLIGHT DEMO</div>
+    <div class="teaser-video-wrap">
+      <video controls muted playsinline preload="metadata">
+        <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/teaser/teaser_0.mp4" type="video/mp4" />
+      </video>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== ABSTRACT ==================== -->
+<section class="section abstract">
+  <div class="container">
+    <h2 class="section-title">ABSTRACT</h2>
+    <div class="divider"></div>
+    <p class="abstract-text">
+      The narrative quality of a video fundamentally determines its perceptual value. Although existing video generation methods can produce visually appealing content, they predominantly rely on sparse conditioning signals such as text prompts or first/last frames, which limits precise control over narrative structure and temporal pacing.
+      <br /><br />
+      In this paper, we propose <strong style="color:#F5C542;">SmartDirector</strong>, a framework that enhances the narrative capacity of video generation models through multiple keyframes. SmartDirector supports flexible generation scenarios including single-shot generation, multi-shot narrative synthesis, and video extension. The framework operates in two stages: <strong>Director-Gen</strong> generates a low-resolution video conditioned on the provided keyframes, and <strong>Director-SR</strong> refines the output by exploiting high-resolution keyframes as semantic anchors to recover fine-grained details. To enable robust multi-keyframe training, we construct a data pipeline that curates single-shot and multi-shot sequences from movies. Extensive experiments demonstrate that SmartDirector substantially outperforms existing state-of-the-art approaches. We will release the code to facilitate further research.
+    </p>
+  </div>
+</section>
+
+<!-- ==================== SECTION 1: Multi-Keyframe Generation ==================== -->
+<section class="section" id="multi-keyframe">
+  <div class="container-wide">
+    <h2 class="section-title">MULTI-KEYFRAME GENERATION</h2>
+    <p class="section-desc">Given multiple keyframes as conditions, SmartDirector generates coherent videos with smooth transitions and consistent narratives across shots.</p>
+    <div class="vid-grid-2x3">
+
+      <!-- Case 1 -->
+      <div class="mk-card" data-kf-times="[0,2,4,6,8,10,11]">
+        <div class="mk-slider-wrap"><div class="mk-slider">
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case1/NO1.jpeg" onclick="openLightbox(this.src)" alt="kf1" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case1/NO2.jpeg" onclick="openLightbox(this.src)" alt="kf2" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case1/NO3.jpeg" onclick="openLightbox(this.src)" alt="kf3" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case1/NO4.jpeg" onclick="openLightbox(this.src)" alt="kf4" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case1/NO5.jpeg" onclick="openLightbox(this.src)" alt="kf5" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case1/NO6.jpeg" onclick="openLightbox(this.src)" alt="kf6" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case1/NO7.jpeg" onclick="openLightbox(this.src)" alt="kf7" />
+        </div></div>
+        <video controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case1/v2_%E7%8B%90%E7%8B%B8%E7%94%9C%E7%82%B9.mp4" type="video/mp4" />
+        </video>
+        <div class="mk-card-tooltip">In a heartwarming stop-motion style, the video follows a straw-woven raccoon baker enjoying a cozy morning of baking. The narrative captures the process from kneading and cutting dough to placing it in an oven glowing with magical golden light.</div>
+      </div>
+
+      <!-- Case 2 -->
+      <div class="mk-card" data-kf-times="[0,2,4,5,6,8.5,10,10.5,13.5]">
+        <div class="mk-slider-wrap"><div class="mk-slider">
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case2/%E5%B0%8F%E5%AD%A9%E6%B2%B3%E9%A9%AC1.png" onclick="openLightbox(this.src)" alt="kf1" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case2/%E5%B0%8F%E5%AD%A9%E6%B2%B3%E9%A9%AC2.jpeg" onclick="openLightbox(this.src)" alt="kf2" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case2/%E5%B0%8F%E5%AD%A9%E6%B2%B3%E9%A9%AC3.png" onclick="openLightbox(this.src)" alt="kf3" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case2/%E5%B0%8F%E5%AD%A9%E6%B2%B3%E9%A9%AC4.png" onclick="openLightbox(this.src)" alt="kf4" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case2/%E5%B0%8F%E5%AD%A9%E6%B2%B3%E9%A9%AC5.png" onclick="openLightbox(this.src)" alt="kf5" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case2/%E5%B0%8F%E5%AD%A9%E6%B2%B3%E9%A9%AC6.png" onclick="openLightbox(this.src)" alt="kf6" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case2/%E5%B0%8F%E5%AD%A9%E6%B2%B3%E9%A9%AC7.png" onclick="openLightbox(this.src)" alt="kf7" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case2/%E5%B0%8F%E5%AD%A9%E6%B2%B3%E9%A9%AC8.png" onclick="openLightbox(this.src)" alt="kf8" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case2/%E5%B0%8F%E5%AD%A9%E6%B2%B3%E9%A9%AC9.png" onclick="openLightbox(this.src)" alt="kf9" />
+        </div></div>
+        <video controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case2/v2_%E9%A5%BC%E5%B9%B2%E7%A2%8E%E5%B1%91.mp4" type="video/mp4" />
+        </video>
+        <div class="mk-card-tooltip">3D claymation. The boy intensely plays games, and the dinosaur sweats nervously. Suddenly they win and jump up on the couch to celebrate. Potato chip crumbs explode and rain down like golden confetti.</div>
+      </div>
+
+      <!-- Case 3 -->
+      <div class="mk-card" data-kf-times="[0,3,4,7,8,10,11]">
+        <div class="mk-slider-wrap"><div class="mk-slider">
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case3/2D%E6%89%8B%E7%BB%981.jpeg" onclick="openLightbox(this.src)" alt="kf1" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case3/2D%E6%89%8B%E7%BB%982.jpeg" onclick="openLightbox(this.src)" alt="kf2" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case3/2D%E6%89%8B%E7%BB%983.png" onclick="openLightbox(this.src)" alt="kf3" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case3/2D%E6%89%8B%E7%BB%984.png" onclick="openLightbox(this.src)" alt="kf4" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case3/2D%E6%89%8B%E7%BB%985.jpeg" onclick="openLightbox(this.src)" alt="kf5" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case3/2D%E6%89%8B%E7%BB%986.jpeg" onclick="openLightbox(this.src)" alt="kf6" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case3/2D%E6%89%8B%E7%BB%987.jpeg" onclick="openLightbox(this.src)" alt="kf7" />
+        </div></div>
+        <video controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case3/v2_%E6%98%9F%E7%A9%BA%E9%9A%A7%E9%81%93.mp4" type="video/mp4" />
+        </video>
+        <div class="mk-card-tooltip">Rendered in a delicate 2D fantasy style blending Studio Ghibli and Makoto Shinkai, the video depicts a boy falling through a cyan futuristic vertical city who touches a golden orb and is instantly engulfed by an explosive burst of light.</div>
+      </div>
+
+      <!-- Case 4 -->
+      <div class="mk-card" data-kf-times="[0,3.5,5,5.5,6,9,10,11]">
+        <div class="mk-slider-wrap"><div class="mk-slider">
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case4/NO1.jpg" onclick="openLightbox(this.src)" alt="kf1" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case4/NO2.png" onclick="openLightbox(this.src)" alt="kf2" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case4/NO3.png" onclick="openLightbox(this.src)" alt="kf3" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case4/NO4.png" onclick="openLightbox(this.src)" alt="kf4" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case4/NO5.png" onclick="openLightbox(this.src)" alt="kf5" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case4/NO6.png" onclick="openLightbox(this.src)" alt="kf6" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case4/NO7.png" onclick="openLightbox(this.src)" alt="kf7" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case4/NO8.png" onclick="openLightbox(this.src)" alt="kf8" />
+        </div></div>
+        <video controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case4/%E8%99%8E%E9%B2%B8%E5%AE%B6%E4%B9%A62_HR_step12.mp4" type="video/mp4" />
+        </video>
+        <div class="mk-card-tooltip">This stop-motion-inspired cinematic sequence depicts a heartwarming interaction between a red-hatted felt girl and a blue felt orca, progressing from a curious peep through a fisheye door viewer to the joyful exchange of a gift.</div>
+      </div>
+
+      <!-- Case 5 -->
+      <div class="mk-card" data-kf-times="[0,2,5,7,10]">
+        <div class="mk-slider-wrap"><div class="mk-slider">
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case5/single_shot_263_ref0.png" onclick="openLightbox(this.src)" alt="ref0" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case5/single_shot_263_ref49.png" onclick="openLightbox(this.src)" alt="ref49" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case5/single_shot_263_ref122.png" onclick="openLightbox(this.src)" alt="ref122" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case5/single_shot_263_ref195.png" onclick="openLightbox(this.src)" alt="ref195" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case5/single_shot_263_ref244.png" onclick="openLightbox(this.src)" alt="ref244" />
+        </div></div>
+        <video controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case5/263_HR.mp4" type="video/mp4" />
+        </video>
+        <div class="mk-card-tooltip">A young East Asian boy plays a first-person shooter game at home, moving from the living room to his bedroom while a female figure shifts from routine chores to silently observing him.</div>
+      </div>
+
+      <!-- Case 6 -->
+      <div class="mk-card" data-kf-times="[0,1,3,4]">
+        <div class="mk-slider-wrap"><div class="mk-slider">
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case6/single_shot_172_ref0.png" onclick="openLightbox(this.src)" alt="ref0" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case6/single_shot_172_ref25.png" onclick="openLightbox(this.src)" alt="ref25" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case6/single_shot_172_ref74.png" onclick="openLightbox(this.src)" alt="ref74" />
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case6/single_shot_172_ref99.png" onclick="openLightbox(this.src)" alt="ref99" />
+        </div></div>
+        <video controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/multi_frame/case6/172_%5B25%2C%2074%2C%2099%5D_00_HR.mp4" type="video/mp4" />
+        </video>
+        <div class="mk-card-tooltip">Pixar-style 3D animation, golden-hour outdoor scene: a hungry orange kitten hides in a tree, curiously spying on a house—first spotting pizza on a table through one window, then noticing a sleeping puppy through another.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 2: Single-Frame Generation ==================== -->
+<section class="section" id="single-keyframe" style="background:#111114;">
+  <div class="container-wide">
+    <h2 class="section-title">SINGLE-FRAME GENERATION</h2>
+    <p class="section-desc">Given a single keyframe at any temporal position, SmartDirector generates a complete video. The keyframe thumbnail position indicates where it falls in the generated video timeline.</p>
+    <div class="sf-grid">
+
+      <!-- FIRST: first_case2 (position: 0%) -->
+      <div class="sf-card">
+        <div class="sf-card-pos-row">
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/single_frame/first_case2/first_frame2.png" onclick="openLightbox(this.src)" style="left:10px;" alt="keyframe" />
+        </div>
+        <video controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/single_frame/first_case2/first_video2_%E5%88%87%E9%95%9C.mp4" type="video/mp4" />
+        </video>
+        <div class="sf-card-tooltip">The video features 3 shots. Shot 1: A low-angle tracking shot follows a husky running, with the camera moving backward. Shot 2: A hard cut to a side or rear chase angle. Shot 3: A hard cut to a long shot featuring a herd of elk.</div>
+      </div>
+
+      <!-- MIDDLE: mid_case1 (position: ~28% to center at 33.6%) -->
+      <div class="sf-card" data-sf-kf-start="1.5" data-sf-kf-end="2.0">
+        <div class="sf-card-pos-row">
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/single_frame/mid_case1/mid_frame1_v1_ref41.png" onclick="openLightbox(this.src)" style="left:28%;" alt="keyframe" />
+        </div>
+        <video controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/single_frame/mid_case1/0_%5B41%5D_18_ck3000_step4_blur6_seed253.mp4" type="video/mp4" />
+        </video>
+        <div class="sf-card-tooltip">The video features a single shot depicting a futuristic motorcycle performing a high-speed drift to evade pursuers on a rainy-night elevated highway in a futuristic city.</div>
+      </div>
+
+      <!-- LAST: last_case3 (position: right) -->
+      <div class="sf-card">
+        <div class="sf-card-pos-row">
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/single_frame/last_case3/last_frame3_v2.png" onclick="openLightbox(this.src)" style="right:10px;" alt="keyframe" />
+        </div>
+        <video controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/single_frame/last_case3/last_video3_v2.mp4" type="video/mp4" />
+        </video>
+        <div class="sf-card-tooltip">The video consists of a single shot depicting the magnificent process of a wandering explorer climbing a cliff, removing his hood, and gazing at ancient ruins beneath the sunset in a desolate desert canyon.</div>
+      </div>
+
+      <!-- FIRST: first_case3 (position: 0%) -->
+      <div class="sf-card">
+        <div class="sf-card-pos-row">
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/single_frame/first_case3/first_frame3_v2.png" onclick="openLightbox(this.src)" style="left:10px;" alt="keyframe" />
+        </div>
+        <video controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/single_frame/first_case3/first_video3_v2.mp4" type="video/mp4" />
+        </video>
+        <div class="sf-card-tooltip">The video features a single shot depicting a white-robed scholar playing a bamboo flute on a raft in an ink-wash landscape, poetically attracting birds.</div>
+      </div>
+
+      <!-- MIDDLE: mid_case2 (position: ~72% to center at 79.5%) -->
+      <div class="sf-card" data-sf-kf-start="3.7" data-sf-kf-end="4.2">
+        <div class="sf-card-pos-row">
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/single_frame/mid_case2/mid_frame2_v2_ref97.png" onclick="openLightbox(this.src)" style="left:72%;" alt="keyframe" />
+        </div>
+        <video controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/single_frame/mid_case2/3_%5B97%5D_30_ck3000_step4_blur6_seed411.mp4" type="video/mp4" />
+        </video>
+        <div class="sf-card-tooltip">The video features a single shot depicting a floating girl touching a magic book and awakening paper butterflies in a weightless, antique study.</div>
+      </div>
+
+      <!-- LAST: last_case5 (position: right) -->
+      <div class="sf-card">
+        <div class="sf-card-pos-row">
+          <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/single_frame/last_case5/last_frame5_v1.png" onclick="openLightbox(this.src)" style="right:10px;" alt="keyframe" />
+        </div>
+        <video controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/single_frame/last_case5/last_video5_v1.mp4" type="video/mp4" />
+        </video>
+        <div class="sf-card-tooltip">The video features a single shot depicting the cozy, healing atmosphere inside a moving pixel-art train, where snowy scenery rushes past the window and warm steam rises from a teacup.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 3: Video Extend ==================== -->
+<section class="section" id="video-mix-cond">
+  <div class="container-wide">
+    <h2 class="section-title">VIDEO &amp; MIXED-MODAL CONDITIONED GENERATION</h2>
+    <p class="section-desc">SmartDirector supports video-conditioned generation — forward continuation, backward generation, and in-between interpolation.</p>
+    <div class="vid-grid-3">
+      <div class="vcard">
+        <video controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/video_extend/%E5%89%8D%E7%94%9F%E5%90%8E.mp4" type="video/mp4" />
+        </video>
+        <div class="vcard-label">Forward: Video → Future</div>
+      </div>
+      <div class="vcard">
+        <video controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/video_extend/%E5%90%8E%E7%94%9F%E5%89%8D.mp4" type="video/mp4" />
+        </video>
+        <div class="vcard-label">Backward: Video → Past</div>
+      </div>
+      <div class="vcard">
+        <video controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/video_extend/%E4%B8%A4%E8%BE%B9%E7%94%9F%E4%B8%AD%E9%97%B4.mp4" type="video/mp4" />
+        </video>
+        <div class="vcard-label">In-Between Interpolation</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 4: Narrative Pacing Control ==================== -->
+<section class="section" id="pacing" style="background:#111114;">
+  <div class="container-wide">
+    <h2 class="section-title">NARRATIVE PACING CONTROL</h2>
+    <p class="section-desc">Using the same set of keyframes, SmartDirector can generate videos with different narrative pacing styles — from slow, suspenseful tension to fast-paced action sequences.</p>
+
+    <div class="pacing-shared-keyframes">
+      <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/pacing_control/NO1.png" onclick="openLightbox(this.src)" alt="kf1" />
+      <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/pacing_control/NO2.png" onclick="openLightbox(this.src)" alt="kf2" />
+      <img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/pacing_control/NO3.png" onclick="openLightbox(this.src)" alt="kf3" />
+      <div class="pacing-shared-keyframes-label">▲ Shared Input Keyframes</div>
+    </div>
+
+    <div class="pacing-sync-bar">
+      <button class="pacing-sync-btn" id="syncPlayBtn" onclick="toggleSyncPlay()">
+        <i class="fas fa-play" id="syncIcon"></i> <span id="syncLabel">Sync Play</span>
+      </button>
+      <div class="pacing-sync-progress" onclick="seekSync(event)">
+        <div class="pacing-sync-progress-fill" id="syncProgressFill"></div>
+      </div>
+    </div>
+
+    <div class="pacing-row">
+      <div class="pacing-col">
+        <div class="pacing-col-header"><span class="pacing-badge suspense">SUSPENSE</span></div>
+        <div class="pacing-prompt-text">This cyberpunk noir prompt depicts a tense rainy alley scene where slow, suffocating dolly-ins and hesitant push-ins amplify psychological dread as a vigilant woman transitions to resolve.</div>
+        <div class="pacing-col-keyframes">
+          <div class="pacing-col-kf-item"><img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/pacing_control/NO1.png" onclick="openLightbox(this.src)" alt="kf1" /><span class="kf-time">t=0.0s</span></div>
+          <div class="pacing-col-kf-item"><img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/pacing_control/NO2.png" onclick="openLightbox(this.src)" alt="kf2" /><span class="kf-time">t=3.0s</span></div>
+          <div class="pacing-col-kf-item"><img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/pacing_control/NO3.png" onclick="openLightbox(this.src)" alt="kf3" /><span class="kf-time">t=4.2s</span></div>
+        </div>
+        <video class="pacing-video-el" controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/pacing_control/SUSPENSE.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div class="pacing-col">
+        <div class="pacing-col-header"><span class="pacing-badge documentary">DOCUMENTARY</span></div>
+        <div class="pacing-prompt-text">Adopting a neutral cyberpunk noir aesthetic, this prompt uses steady tracking and arcing shots to objectively observe a woman's shift from alertness to determination in a rainy alley.</div>
+        <div class="pacing-col-keyframes">
+          <div class="pacing-col-kf-item"><img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/pacing_control/NO1.png" onclick="openLightbox(this.src)" alt="kf1" /><span class="kf-time">t=0.0s</span></div>
+          <div class="pacing-col-kf-item"><img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/pacing_control/NO2.png" onclick="openLightbox(this.src)" alt="kf2" /><span class="kf-time">t=1.8s</span></div>
+          <div class="pacing-col-kf-item"><img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/pacing_control/NO3.png" onclick="openLightbox(this.src)" alt="kf3" /><span class="kf-time">t=3.4s</span></div>
+        </div>
+        <video class="pacing-video-el" controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/pacing_control/DOCUMENTARY.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div class="pacing-col">
+        <div class="pacing-col-header"><span class="pacing-badge action">ACTION</span></div>
+        <div class="pacing-prompt-text">This high-intensity cyberpunk noir prompt captures a woman's aggressive movement through a rainy alley using rapid zooms, high-frequency camera shake, and sharp audio cues to maximize kinetic energy.</div>
+        <div class="pacing-col-keyframes">
+          <div class="pacing-col-kf-item"><img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/pacing_control/NO1.png" onclick="openLightbox(this.src)" alt="kf1" /><span class="kf-time">t=0.0s</span></div>
+          <div class="pacing-col-kf-item"><img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/pacing_control/NO2.png" onclick="openLightbox(this.src)" alt="kf2" /><span class="kf-time">t=1.0s</span></div>
+          <div class="pacing-col-kf-item"><img src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/pacing_control/NO3.png" onclick="openLightbox(this.src)" alt="kf3" /><span class="kf-time">t=2.2s</span></div>
+        </div>
+        <video class="pacing-video-el" controls muted playsinline preload="metadata">
+          <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/pacing_control/ACTION.mp4" type="video/mp4" />
+        </video>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 5: Video Super-Resolution ==================== -->
+<section class="section" id="video-sr">
+  <div class="container-wide">
+    <h2 class="section-title">VIDEO SUPER-RESOLUTION</h2>
+    <p class="section-desc">By leveraging keyframe-conditioned generation, SmartDirector anchors identity information from reference frames during super-resolution, enabling identity-consistent restoration of degraded facial details and corrupted text — a capability beyond conventional SR methods.</p>
+    <div class="sr-grid">
+
+      <!-- SR Case 1 -->
+      <div class="sr-card" id="sr-card-0">
+        <div class="sr-stage" id="sr-stage-0">
+          <div class="sr-viewport" id="sr-vp-0">
+            <video id="sr-right-0" muted loop playsinline preload="metadata">
+              <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/SR/case1/Ours.mp4" type="video/mp4" />
+            </video>
+            <div class="sr-left-container" id="sr-left-con-0">
+              <video id="sr-left-0" muted loop playsinline preload="metadata">
+                <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/SR/case1/ori.mp4" type="video/mp4" />
+              </video>
+            </div>
+          </div>
+          <span class="sr-label sr-label-left" id="sr-llabel-0">Original</span>
+          <span class="sr-label sr-label-right" id="sr-rlabel-0">Ours</span>
+        </div>
+        <div class="sr-controls">
+          <span style="font-size:0.72rem;color:#6B7280;">L:</span>
+          <select id="sr-lsel-0" onchange="srUpdateVideo(0)">
+            <option value="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/SR/case1/ori.mp4">Original</option>
+            <option value="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/SR/case1/SparkVSR.mp4">SparkVSR</option>
+            <option value="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/SR/case1/Ours.mp4">Ours</option>
+          </select>
+          <button class="sr-play-btn" onclick="srTogglePlay(0)"><i class="fas fa-play" id="sr-playicon-0"></i></button>
+          <input type="range" min="0" max="100" value="0" class="sr-seek" id="sr-seek-0" oninput="srSeek(0, this.value)">
+          <span class="sr-info" id="sr-frame-0">0 / 0</span>
+          <span class="sr-zoom-badge" id="sr-zoom-0">100%</span>
+          <span style="font-size:0.72rem;color:#6B7280;">R:</span>
+          <select id="sr-rsel-0" onchange="srUpdateVideo(0)">
+            <option value="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/SR/case1/ori.mp4">Original</option>
+            <option value="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/SR/case1/SparkVSR.mp4">SparkVSR</option>
+            <option value="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/SR/case1/Ours.mp4" selected>Ours</option>
+          </select>
+          <button class="sr-play-btn" onclick="srResetView(0)" title="Reset zoom"><i class="fas fa-compress"></i></button>
+        </div>
+        <div class="sr-hint">Drag to compare · Scroll to zoom · Right-click drag to pan</div>
+      </div>
+
+      <!-- SR Case 2 -->
+      <div class="sr-card" id="sr-card-1">
+        <div class="sr-stage" id="sr-stage-1">
+          <div class="sr-viewport" id="sr-vp-1">
+            <video id="sr-right-1" muted loop playsinline preload="metadata">
+              <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/SR/case2/Ours.mp4" type="video/mp4" />
+            </video>
+            <div class="sr-left-container" id="sr-left-con-1">
+              <video id="sr-left-1" muted loop playsinline preload="metadata">
+                <source src="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/SR/case2/ori.mp4" type="video/mp4" />
+              </video>
+            </div>
+          </div>
+          <span class="sr-label sr-label-left" id="sr-llabel-1">Original</span>
+          <span class="sr-label sr-label-right" id="sr-rlabel-1">Ours</span>
+        </div>
+        <div class="sr-controls">
+          <span style="font-size:0.72rem;color:#6B7280;">L:</span>
+          <select id="sr-lsel-1" onchange="srUpdateVideo(1)">
+            <option value="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/SR/case2/ori.mp4">Original</option>
+            <option value="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/SR/case2/SparkVSR.mp4">SparkVSR</option>
+            <option value="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/SR/case2/Ours.mp4">Ours</option>
+          </select>
+          <button class="sr-play-btn" onclick="srTogglePlay(1)"><i class="fas fa-play" id="sr-playicon-1"></i></button>
+          <input type="range" min="0" max="100" value="0" class="sr-seek" id="sr-seek-1" oninput="srSeek(1, this.value)">
+          <span class="sr-info" id="sr-frame-1">0 / 0</span>
+          <span class="sr-zoom-badge" id="sr-zoom-1">100%</span>
+          <span style="font-size:0.72rem;color:#6B7280;">R:</span>
+          <select id="sr-rsel-1" onchange="srUpdateVideo(1)">
+            <option value="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/SR/case2/ori.mp4">Original</option>
+            <option value="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/SR/case2/SparkVSR.mp4">SparkVSR</option>
+            <option value="https://anim-res.youku.com/zzd/GSB_eval/web/demo_videos/SR/case2/Ours.mp4" selected>Ours</option>
+          </select>
+          <button class="sr-play-btn" onclick="srResetView(1)" title="Reset zoom"><i class="fas fa-compress"></i></button>
+        </div>
+        <div class="sr-hint">Drag to compare · Scroll to zoom · Right-click drag to pan</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==================== ETHICAL ==================== -->
+<section class="section ethical">
+  <div class="container">
+    <h2 class="section-title">ETHICAL CONSIDERATIONS</h2>
+    <div class="divider"></div>
+    <p class="ethical-text">
+      The insertion condition images and videos used in these examples are sourced from publicly available channels or generated by models, and are intended solely to demonstrate the capabilities of this research. If there are any concerns, please contact us (<a href="mailto:liangyi.zzd@alibaba-inc.com">liangyi.zzd@alibaba-inc.com</a>) and we will remove the relevant examples in time.
+    </p>
+  </div>
+</section>
+
+<!-- ==================== CITATION ==================== -->
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">CITATION</h2>
+    <div class="divider"></div>
+    <div class="bibtex-block">
+      <button class="bibtex-copy" onclick="copyBibtex()"><i class="fas fa-copy"></i> Copy</button>
+      <div class="bibtex-code" id="bibtex-content">@article{zhang2026smartdirector,
+  title     = {SmartDirector: Keyframe-Conditioned Cinematic Video
+               Generation with Narrative Pacing Control},
+  author    = {Zhang, Zhida and Ma, Jie and Peng, Zhan and Wu, Haoxue
+               and Han, Yang and Liang, Jun and Cao, Jie and Li, Jing},
+  journal   = {arXiv preprint arXiv:2026.XXXXX},
+  year      = {2026}
+}</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="footer">
+  <div class="container">
+    <p>SmartDirector &copy; 2026 &nbsp;|&nbsp; <a href="#">CASIA</a> &amp; <a href="#">Youku Moku-Lab</a> &amp; <a href="#">HUST</a></p>
+    <p style="margin-top:6px; font-size:0.75rem; color:#444;">Page template inspired by academic project pages. Videos are best viewed in Chrome / Edge.</p>
+  </div>
+</footer>
+
+<!-- ==================== LIGHTBOX ==================== -->
+<div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="Zoomed keyframe" />
+</div>
+
+<!-- ==================== SCRIPTS ==================== -->
+<script>
+/* === Lightbox === */
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('active');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('active');
+  document.getElementById('lightbox-img').src = '';
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeLightbox(); });
+
+/* === Copy BibTeX === */
+function copyBibtex() {
+  var text = document.getElementById('bibtex-content').textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = document.querySelector('.bibtex-copy');
+    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+    setTimeout(function() { btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; }, 2000);
+  });
+}
+
+/* === Multi-Keyframe Auto-Scroll === */
+function initMkCards() {
+  var cards = document.querySelectorAll('.mk-card');
+  cards.forEach(function(card) {
+    var video = card.querySelector('video');
+    var sliderWrap = card.querySelector('.mk-slider-wrap');
+    var slider = card.querySelector('.mk-slider');
+    var images = slider.querySelectorAll('img');
+    var kfTimes = JSON.parse(card.getAttribute('data-kf-times'));
+
+    // Center first frame initially
+    function centerFrame(idx) {
+      if (!images[idx]) return;
+      var wrapWidth = sliderWrap.offsetWidth;
+      var imgEl = images[idx];
+      var imgCenter = imgEl.offsetLeft + imgEl.offsetWidth / 2;
+      var offset = -(imgCenter - wrapWidth / 2);
+      // Clamp offset
+      var sliderWidth = slider.scrollWidth;
+      var maxOffset = 0;
+      var minOffset = -(sliderWidth - wrapWidth);
+      offset = Math.max(minOffset, Math.min(maxOffset, offset));
+      slider.style.transform = 'translateX(' + offset + 'px)';
+    }
+
+    // Initialize: center first frame
+    video.addEventListener('loadedmetadata', function() { centerFrame(0); });
+    // Fallback if already loaded
+    if (video.readyState >= 1) { setTimeout(function() { centerFrame(0); }, 100); }
+
+    // On timeupdate, find closest keyframe and center it
+    video.addEventListener('timeupdate', function() {
+      var currentTime = video.currentTime;
+      var duration = video.duration;
+      if (!duration) return;
+
+      // Find which keyframe we're closest to (or just passed)
+      var activeIdx = 0;
+      for (var i = 0; i < kfTimes.length; i++) {
+        if (currentTime >= kfTimes[i] - 0.1) {
+          activeIdx = i;
+        }
+      }
+
+      // Highlight active
+      images.forEach(function(img, idx) {
+        if (idx === activeIdx) { img.classList.add('active-kf'); }
+        else { img.classList.remove('active-kf'); }
+      });
+
+      centerFrame(activeIdx);
+    });
+  });
+}
+
+// Run after DOM ready
+document.addEventListener('DOMContentLoaded', initMkCards);
+// Also run after a short delay for safety
+setTimeout(initMkCards, 500);
+
+/* === Single-Frame Keyframe Highlight === */
+function initSfHighlight() {
+  var sfCards = document.querySelectorAll('.sf-card[data-sf-kf-start]');
+  sfCards.forEach(function(card) {
+    var video = card.querySelector('video');
+    var img = card.querySelector('.sf-card-pos-row img');
+    var kfStart = parseFloat(card.getAttribute('data-sf-kf-start'));
+    var kfEnd = parseFloat(card.getAttribute('data-sf-kf-end'));
+    if (!video || !img) return;
+
+    video.addEventListener('timeupdate', function() {
+      var t = video.currentTime;
+      if (t >= kfStart && t <= kfEnd) {
+        img.classList.add('active-kf');
+      } else {
+        img.classList.remove('active-kf');
+      }
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', initSfHighlight);
+
+/* === SR Comparison Slider (with zoom, pan, frame-step) === */
+var srStates = [{}, {}];
+
+function initSrSliders() {
+  for (var i = 0; i < 2; i++) {
+    (function(idx) {
+      var stage = document.getElementById('sr-stage-' + idx);
+      var viewport = document.getElementById('sr-vp-' + idx);
+      var leftCon = document.getElementById('sr-left-con-' + idx);
+      var vLeft = document.getElementById('sr-left-' + idx);
+      var vRight = document.getElementById('sr-right-' + idx);
+
+      var st = { zoom: 1.0, posX: 0, posY: 0, isPanning: false, isSplitting: false, startX: 0, startY: 0, fps: 24, splitRatio: 50 };
+      srStates[idx] = st;
+
+      // Left-click: compare split
+      stage.addEventListener('mousedown', function(e) {
+        if (e.button === 0) { st.isSplitting = true; doSplit(e); }
+        else if (e.button === 2) { st.isPanning = true; st.startX = e.clientX - st.posX; st.startY = e.clientY - st.posY; }
+      });
+
+      window.addEventListener('mousemove', function(e) {
+        if (st.isSplitting) doSplit(e);
+        else if (st.isPanning) { st.posX = e.clientX - st.startX; st.posY = e.clientY - st.startY; applyTransform(idx); }
+      });
+
+      window.addEventListener('mouseup', function() { st.isSplitting = false; st.isPanning = false; });
+
+      stage.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+      // Scroll to zoom
+      stage.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        var delta = e.deltaY > 0 ? 0.9 : 1.1;
+        srApplyZoom(idx, st.zoom * delta);
+      });
+
+      // Touch support
+      stage.addEventListener('touchstart', function(e) { st.isSplitting = true; doSplit(e.touches[0]); });
+      stage.addEventListener('touchmove', function(e) { if (st.isSplitting) { e.preventDefault(); doSplit(e.touches[0]); } });
+      stage.addEventListener('touchend', function() { st.isSplitting = false; });
+
+      function doSplit(e) {
+        var rect = stage.getBoundingClientRect();
+        var mouseX = e.clientX - rect.left;
+        var videoX = (mouseX - st.posX) / st.zoom;
+        var ratio = (videoX / rect.width) * 100;
+        st.splitRatio = Math.max(0, Math.min(100, ratio));
+        leftCon.style.width = st.splitRatio + '%';
+      }
+
+      // Auto-fit stage to video aspect ratio
+      vLeft.addEventListener('loadedmetadata', function() { fitStage(idx); });
+      if (vLeft.readyState >= 1) setTimeout(function() { fitStage(idx); }, 100);
+
+      // Sync time + frame display
+      vLeft.addEventListener('timeupdate', function() {
+        var seek = document.getElementById('sr-seek-' + idx);
+        if (vLeft.duration) seek.value = (vLeft.currentTime / vLeft.duration) * 100;
+        if (Math.abs(vLeft.currentTime - vRight.currentTime) > 0.03) vRight.currentTime = vLeft.currentTime;
+        var cur = Math.floor(vLeft.currentTime * st.fps);
+        var tot = Math.floor((vLeft.duration || 0) * st.fps);
+        document.getElementById('sr-frame-' + idx).textContent = cur + ' / ' + tot;
+      });
+    })(i);
+  }
+}
+
+function fitStage(idx) {
+  // Stage uses CSS aspect-ratio: 16/9, both cases share the same box size.
+  // Videos with different aspect ratios are centered via object-fit: contain.
+  // No dynamic sizing needed — just ensure video elements fill the stage.
+  var vLeft = document.getElementById('sr-left-' + idx);
+  var vRight = document.getElementById('sr-right-' + idx);
+  var stage = document.getElementById('sr-stage-' + idx);
+  var sw = stage.offsetWidth + 'px', sh = stage.offsetHeight + 'px';
+  vLeft.style.width = sw; vLeft.style.height = sh;
+  vRight.style.width = sw; vRight.style.height = sh;
+}
+
+function applyTransform(idx) {
+  var vp = document.getElementById('sr-vp-' + idx);
+  var st = srStates[idx];
+  vp.style.transform = 'translate(' + st.posX + 'px,' + st.posY + 'px) scale(' + st.zoom + ')';
+}
+
+function srApplyZoom(idx, val) {
+  var st = srStates[idx];
+  st.zoom = Math.max(0.5, Math.min(8.0, val));
+  document.getElementById('sr-zoom-' + idx).textContent = Math.round(st.zoom * 100) + '%';
+  applyTransform(idx);
+}
+
+function srResetView(idx) {
+  var st = srStates[idx];
+  st.posX = 0; st.posY = 0; st.zoom = 1.0; st.splitRatio = 50;
+  document.getElementById('sr-left-con-' + idx).style.width = '50%';
+  srApplyZoom(idx, 1.0);
+}
+
+document.addEventListener('DOMContentLoaded', initSrSliders);
+
+function srTogglePlay(idx) {
+  var vLeft = document.getElementById('sr-left-' + idx);
+  var vRight = document.getElementById('sr-right-' + idx);
+  var icon = document.getElementById('sr-playicon-' + idx);
+  if (vLeft.paused) {
+    vLeft.play(); vRight.play();
+    icon.className = 'fas fa-pause';
+  } else {
+    vLeft.pause(); vRight.pause();
+    icon.className = 'fas fa-play';
+  }
+}
+
+function srSeek(idx, val) {
+  var vLeft = document.getElementById('sr-left-' + idx);
+  var vRight = document.getElementById('sr-right-' + idx);
+  if (vLeft.duration) {
+    var t = (val / 100) * vLeft.duration;
+    vLeft.currentTime = t; vRight.currentTime = t;
+  }
+}
+
+function srStep(idx, dir) {
+  var vLeft = document.getElementById('sr-left-' + idx);
+  var vRight = document.getElementById('sr-right-' + idx);
+  vLeft.pause(); vRight.pause();
+  document.getElementById('sr-playicon-' + idx).className = 'fas fa-play';
+  vLeft.currentTime += dir * (1 / srStates[idx].fps);
+  vRight.currentTime = vLeft.currentTime;
+}
+
+function srUpdateVideo(idx) {
+  var vLeft = document.getElementById('sr-left-' + idx);
+  var vRight = document.getElementById('sr-right-' + idx);
+  var lSel = document.getElementById('sr-lsel-' + idx);
+  var rSel = document.getElementById('sr-rsel-' + idx);
+  var lLabel = document.getElementById('sr-llabel-' + idx);
+  var rLabel = document.getElementById('sr-rlabel-' + idx);
+
+  var curTime = vLeft.currentTime || 0;
+  vLeft.src = lSel.value;
+  vRight.src = rSel.value;
+  lLabel.textContent = lSel.options[lSel.selectedIndex].text;
+  rLabel.textContent = rSel.options[rSel.selectedIndex].text;
+
+  vLeft.addEventListener('loadedmetadata', function onLoad() {
+    vLeft.currentTime = curTime;
+    vRight.currentTime = curTime;
+    fitStage(idx);
+    vLeft.removeEventListener('loadedmetadata', onLoad);
+  });
+}
+
+/* === Sync Play for Pacing Section === */
+var syncPlaying = false;
+var syncAnimFrame = null;
+var pacingVideos = document.querySelectorAll('.pacing-video-el');
+
+function toggleSyncPlay() {
+  if (syncPlaying) { pauseAllSync(); } else { playAllSync(); }
+}
+function playAllSync() {
+  syncPlaying = true;
+  document.getElementById('syncIcon').className = 'fas fa-pause';
+  document.getElementById('syncLabel').textContent = 'Pause';
+  var allEnded = true;
+  pacingVideos.forEach(function(v) { if (v.currentTime < v.duration - 0.1) allEnded = false; });
+  if (allEnded) { pacingVideos.forEach(function(v) { v.currentTime = 0; }); }
+  pacingVideos.forEach(function(v) { v.play(); });
+  updateSyncProgress();
+}
+function pauseAllSync() {
+  syncPlaying = false;
+  document.getElementById('syncIcon').className = 'fas fa-play';
+  document.getElementById('syncLabel').textContent = 'Sync Play';
+  pacingVideos.forEach(function(v) { v.pause(); });
+  if (syncAnimFrame) cancelAnimationFrame(syncAnimFrame);
+}
+function updateSyncProgress() {
+  if (!syncPlaying) return;
+  var maxDur = 0;
+  pacingVideos.forEach(function(v) { if (v.duration > maxDur) maxDur = v.duration; });
+  var maxTime = 0;
+  pacingVideos.forEach(function(v) { if (v.currentTime > maxTime) maxTime = v.currentTime; });
+  var pct = maxDur > 0 ? (maxTime / maxDur) * 100 : 0;
+  document.getElementById('syncProgressFill').style.width = Math.min(pct, 100) + '%';
+  var allEnded = true;
+  pacingVideos.forEach(function(v) { if (!v.ended) allEnded = false; });
+  if (allEnded) { pauseAllSync(); document.getElementById('syncProgressFill').style.width = '100%'; return; }
+  syncAnimFrame = requestAnimationFrame(updateSyncProgress);
+}
+function seekSync(event) {
+  var bar = event.currentTarget;
+  var rect = bar.getBoundingClientRect();
+  var pct = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+  pacingVideos.forEach(function(v) { if (v.duration) v.currentTime = pct * v.duration; });
+  document.getElementById('syncProgressFill').style.width = (pct * 100) + '%';
+}
+</script>
+
+</body>
+</html>
