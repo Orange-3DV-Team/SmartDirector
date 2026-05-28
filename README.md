@@ -29,7 +29,6 @@
 <a href="https://arxiv.org/abs/2605.27891"><img src="https://img.shields.io/static/v1?label=Paper&message=arXiv&color=red"></a> &ensp;
 </p>
 
-## 🎬 Demo
 
 https://github.com/user-attachments/assets/de01e0e4-7ce3-4a4f-b413-b9f9d5d3ece0
 
@@ -40,7 +39,7 @@ In this paper, we propose **SmartDirector**, a framework that enhances the narra
 
 ## 🖼️ Framework
 <div align="center">
-  <img src="framework.jpg" alt="framework"/>
+  <img src="framework.png" alt="framework"/>
 </div>
 
 
