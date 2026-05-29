@@ -10,8 +10,8 @@
   <a href="#">Zhida Zhang</a><sup>1</sup>,
   <a href="#">Jie Ma</a><sup>2</sup>,
   <a href="#">Zhan Peng</a><sup>3</sup>,
-  <a href="#">Haoxue Wu</a><sup>2</sup>,
   <a href="#">Yang Han</a><sup>2</sup>,
+  <a href="#">Haoxue Wu</a><sup>2</sup>,
   <a href="#">Jun Liang</a><sup>2</sup>,
   <a href="#">Jie Cao</a><sup>1</sup>,
   <a href="#">Jing Li</a><sup>2</sup>
