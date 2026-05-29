@@ -31,7 +31,8 @@
 </p>
 
 
-https://github.com/user-attachments/assets/de01e0e4-7ce3-4a4f-b413-b9f9d5d3ece0
+https://github.com/user-attachments/assets/2b1fdf9d-1ffa-4c5a-8850-739c14a6a113
+
 
 ## 📝 Abstract
 
