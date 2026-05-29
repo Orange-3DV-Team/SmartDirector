@@ -24,9 +24,10 @@
 </p>
 
 <p align="center">
-<a href="https://orange-3dv-team.github.io/SmartDirector/"><img src="https://img.shields.io/static/v1?label=Project%20Page&message=Web&color=green"></a> &ensp;
-<a href="https://github.com/Orange-3DV-Team/SmartDirector"><img src="https://img.shields.io/static/v1?label=Code&message=Github&color=blue"></a> &ensp;
 <a href="https://arxiv.org/abs/2605.27891"><img src="https://img.shields.io/static/v1?label=Paper&message=arXiv&color=red"></a> &ensp;
+<a href="https://orange-3dv-team.github.io/SmartDirector/"><img src="https://img.shields.io/static/v1?label=Project%20Page&message=Web&color=green"></a> &ensp;
+<a href="https://huggingface.co/papers/2605.27891"><img src="https://img.shields.io/static/v1?label=SmartDirector&message=HuggingFace&color=yellow"></a> &ensp;
+<a href="https://github.com/Orange-3DV-Team/SmartDirector"><img src="https://img.shields.io/static/v1?label=Code&message=Github&color=blue"></a> &ensp;
 </p>
 
 
